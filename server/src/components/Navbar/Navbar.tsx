@@ -1,66 +1,66 @@
-import { useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { Menu, X } from "lucide-react"
-import { Link, useLocation, useNavigate } from "react-router-dom"
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Menu, X } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 const Navbar1 = () => {
-  const [isOpen, setIsOpen] = useState(false)
-  const location = useLocation()
-  const navigate = useNavigate()
+  const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
 
-  const toggleMenu = () => setIsOpen(!isOpen)
+  const toggleMenu = () => setIsOpen(!isOpen);
 
   const scrollToSection = (sectionId: string) => {
     if (location.pathname !== "/") {
-      navigate("/")
+      navigate("/");
       setTimeout(() => {
-        const element = document.getElementById(sectionId)
+        const element = document.getElementById(sectionId);
         if (element) {
-          const offset = 100
-          const elementPosition = element.getBoundingClientRect().top
-          const offsetPosition = elementPosition + window.pageYOffset - offset
+          const offset = 100;
+          const elementPosition = element.getBoundingClientRect().top;
+          const offsetPosition = elementPosition + window.pageYOffset - offset;
           window.scrollTo({
             top: offsetPosition,
-            behavior: "smooth"
-          })
+            behavior: "smooth",
+          });
         }
-      }, 100)
+      }, 100);
     } else {
-      const element = document.getElementById(sectionId)
+      const element = document.getElementById(sectionId);
       if (element) {
-        const offset = 100 // Offset for fixed navbar
-        const elementPosition = element.getBoundingClientRect().top
-        const offsetPosition = elementPosition + window.pageYOffset - offset
+        const offset = 100; // Offset for fixed navbar
+        const elementPosition = element.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - offset;
 
         window.scrollTo({
           top: offsetPosition,
-          behavior: "smooth"
-        })
+          behavior: "smooth",
+        });
       }
     }
-    setIsOpen(false)
-  }
+    setIsOpen(false);
+  };
 
   const handleGetStarted = () => {
     if (location.pathname !== "/") {
-      navigate("/")
-      setTimeout(() => scrollToSection("hero"), 100)
+      navigate("/");
+      setTimeout(() => scrollToSection("hero"), 100);
     } else {
-      scrollToSection("hero")
+      scrollToSection("hero");
     }
-    setIsOpen(false)
-  }
+    setIsOpen(false);
+  };
 
   const handleLogoClick = () => {
-    navigate("/")
-    setIsOpen(false)
-  }
+    navigate("/");
+    setIsOpen(false);
+  };
 
   const navItems = [
     { label: "Home", id: "hero" },
     { label: "Features", id: "features" },
     { label: "About", id: "about" },
-  ]
+  ];
 
   return (
     <div className="flex justify-center w-full py-6 px-4 fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-sm">
@@ -78,11 +78,11 @@ const Navbar1 = () => {
               i
             </div>
             <span className="text-lg font-bold text-black bg-clip-text ">
-              IntelliAgent
+              SmartScan
             </span>
           </motion.div>
         </div>
-        
+
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-8">
           {navItems.map((item) => (
@@ -135,9 +135,9 @@ const Navbar1 = () => {
         </motion.div>
 
         {/* Mobile Menu Button */}
-        <motion.button 
-          className="md:hidden flex items-center" 
-          onClick={toggleMenu} 
+        <motion.button
+          className="md:hidden flex items-center"
+          onClick={toggleMenu}
           whileTap={{ scale: 0.9 }}
           aria-label="Toggle menu"
         >
@@ -183,7 +183,7 @@ const Navbar1 = () => {
                   </button>
                 </motion.div>
               ))}
-              
+
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -218,7 +218,7 @@ const Navbar1 = () => {
         )}
       </AnimatePresence>
     </div>
-  )
-}
+  );
+};
 
-export { Navbar1 }
+export { Navbar1 };
