@@ -3,24 +3,12 @@ import React from "react";
 
 const Footer = () => {
   return (
-    <footer className="bg-gray-900 text-gray-300 py-10">
-      <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center">
-        <h3 className="text-xl font-semibold mb-4 md:mb-0">
-          SmartScan © {new Date().getFullYear()}
-        </h3>
-        <div className="flex space-x-6">
-          <a href="#" className="hover:text-white transition">
-            Privacy Policy
-          </a>
-          <a href="#" className="hover:text-white transition">
-            Terms
-          </a>
-          <a href="#" className="hover:text-white transition">
-            Contact
-          </a>
-        </div>
+    <footer className="bg-white border-t border-gray-100 py-6">
+      <div className="max-w-5xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center">
+        <span className="text-sm text-gray-500">
+          MultiAgent SmartScan © {new Date().getFullYear()}
+        </span>
       </div>
-      <p className="text-center text-gray-500 mt-4 text-sm">Team SmartScan</p>
     </footer>
   );
 };

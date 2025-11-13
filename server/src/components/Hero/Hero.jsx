@@ -4,13 +4,13 @@ import { MoveRight, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Modal from "@/components/Modal/Modal";
 import SignupForm from "@/components/Signup/SignupForm";
-import ChatWorkspace from "@/components/ChatWorkspace/ChatWorkspace";
+import { useNavigate } from "react-router-dom";
 
 const Hero = () => {
   const [titleNumber, setTitleNumber] = useState(0);
   const [showSignup, setShowSignup] = useState(false);
   const [isSignedUp, setIsSignedUp] = useState(false);
-  const [showChat, setShowChat] = useState(false);
+  const navigate = useNavigate();
 
   const titles = useMemo(
     () => [
@@ -41,19 +41,21 @@ const Hero = () => {
     setShowSignup(false);
   };
 
-  if (showChat) return <ChatWorkspace onExit={() => setShowChat(false)} />;
+  const handleChatClick = () => {
+    navigate("/chat");
+  };
 
   return (
-    <section className="bg-gradient-to-b from-white to-gray-50">
-      <div className="w-full flex flex-col items-center justify-center gap-8 py-20 lg:py-40">
+    <section id="hero" className="flex flex-col  gap-8 items-center justify-center h-screen">
+      <div className="w-full flex flex-col items-center justify-center gap-8">
         <div className="flex gap-8 py-20 lg:py-40 items-center justify-center flex-col">
           <div className="flex gap-4 flex-col text-center">
-            <h1 className="text-5xl md:text-7xl max-w-2xl tracking-tighter">
+            <h1 className="text-5xl md:text-7xl max-w-3xl tracking-tighter">
               <span className="block font-bold">MultiAgent Smart Scan</span>
               <span className="text-gray-700">
                 AI-Powered Financial Understanding
               </span>
-              <span className="relative flex w-full justify-center overflow-hidden text-center md:pb-4 md:pt-1">
+              <span className="relative flex w-full  justify-center overflow-hidden text-center md:pb-16 md:pt-1">
                 {titles.map((title, index) => (
                   <motion.span
                     key={index}
@@ -90,8 +92,8 @@ const Hero = () => {
             ) : (
               <Button
                 size="lg"
-                className="gap-4 bg-green-600 hover:bg-green-700"
-                onClick={() => setShowChat(true)}
+                className="gap-4 cursor-pointer bg-indigo-600 hover:bg-indigo-700"
+                onClick={handleChatClick}
               >
                 Chat with AI <MessageCircle className="w-4 h-4" />
               </Button>
