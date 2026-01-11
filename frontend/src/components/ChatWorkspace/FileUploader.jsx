@@ -37,13 +37,14 @@ export const FileUpload = ({ onChange }) => {
     e.preventDefault();
     
     if (files.length === 0) {
-      setAnalysisStatus({ type: 'error', message: 'Please upload a PDF file first' });
+      setAnalysisStatus({ type: 'error', message: 'Please upload at least one PDF file' });
       return;
     }
 
-    const file = files[0];
-    if (file.type !== 'application/pdf') {
-      setAnalysisStatus({ type: 'error', message: 'Please upload a valid PDF file' });
+    // Validate all files
+    const invalidFile = files.find(file => file.type !== 'application/pdf');
+    if (invalidFile) {
+      setAnalysisStatus({ type: 'error', message: `File '${invalidFile.name}' is not a valid PDF` });
       return;
     }
 
@@ -52,7 +53,9 @@ export const FileUpload = ({ onChange }) => {
 
     try {
       const formData = new FormData();
-      formData.append('file', file);
+      files.forEach((file) => {
+        formData.append('files', file);
+      });
 
       const response = await fetch('http://localhost:8000/api/process-invoice', {
         method: 'POST',
@@ -66,7 +69,7 @@ export const FileUpload = ({ onChange }) => {
 
       const data = await response.json();
       if (data.success) {
-        setAnalysisStatus({ type: 'success', message: data.message || 'PDF analyzed and indexed successfully!' });
+        setAnalysisStatus({ type: 'success', message: data.message || 'PDFs analyzed and indexed successfully!' });
       } else {
         throw new Error(data.message || 'Analysis failed');
       }
@@ -78,16 +81,15 @@ export const FileUpload = ({ onChange }) => {
   };
 
   const handleClick = (e) => {
-    // Don't open file picker if files are already uploaded
-    if (files.length > 0) {
-      e.stopPropagation();
-      return;
-    }
+    // Allow checking files even if some are uploaded, to add more? 
+    // For now, let's keep the logic simple: always allow clicking to add more if we want,
+    // or if we want to replace. The current logic blocks click if files > 0.
+    // Changing to allow clicking to add more files.
     fileInputRef.current?.click();
   };
 
   const { getRootProps, isDragActive } = useDropzone({
-    multiple: false,
+    multiple: true,
     noClick: true,
     onDrop: handleFileChange,
     onDropRejected: (error) => console.log(error),
@@ -106,6 +108,7 @@ export const FileUpload = ({ onChange }) => {
           ref={fileInputRef}
           id="file-upload-handle"
           type="file"
+          multiple
           onChange={(e) => handleFileChange(Array.from(e.target.files || []))}
           className="hidden"
         />
@@ -129,7 +132,7 @@ export const FileUpload = ({ onChange }) => {
             Upload File
           </p>
           <p className="relative z-20 font-sans font-normal text-muted-foreground text-base mt-2">
-            Drag or drop your files here or click to upload
+            Drag or drop your files here or click to upload multiple PDFs
           </p>
 
           <div className="relative w-full mt-10 max-w-xl mx-auto">
