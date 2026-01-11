@@ -62,7 +62,7 @@ async def process_invoice_endpoint(files: list[UploadFile] = File(...)):
                      raise HTTPException(status_code=413, detail=f"File '{file.filename}' too large. Maximum size is 10MB.")
 
                 print(f"Orchestrator: Processing '{file.filename}'...")
-                indexing_agent.process_and_store_pdf(tmp_path)
+                indexing_agent.process_and_store_pdf(tmp_path, original_filename=file.filename)
                 processed_count += 1
                 
             finally:

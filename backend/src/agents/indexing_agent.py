@@ -1,13 +1,16 @@
 from src.core import loader, splitter
 from src.core.vector_store_client import get_vector_store_client
+import os
 
-def process_and_store_pdf(pdf_path: str):
+def process_and_store_pdf(pdf_path: str, original_filename: str = None):
     
     try:
         print(f"Indexing Agent: Managing workflow for '{pdf_path}'")
         
         extracted_text = loader.load_pdf_text(pdf_path)
-        docs = splitter.split_text_into_chunks(extracted_text)
+        
+        filename = original_filename if original_filename else os.path.basename(pdf_path)
+        docs = splitter.split_text_into_chunks(extracted_text, metadata={"source": filename})
         
         # Get the Qdrant client and add documents
         print("Indexing Agent: Getting Qdrant client and adding documents...")

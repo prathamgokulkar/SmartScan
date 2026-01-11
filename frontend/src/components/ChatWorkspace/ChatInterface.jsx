@@ -10,6 +10,10 @@ import {
 import { ChatInput } from "@/components/ui/chat-input";
 import { ChatMessageList } from "@/components/ui/chat-message-list";
 
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { useEffect, useRef } from "react";
+
 export default function ChatInterface() {
   const [messages, setMessages] = useState([
     {
@@ -18,9 +22,18 @@ export default function ChatInterface() {
       sender: "ai",
     },
   ]);
-
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  const messagesEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isLoading]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -89,8 +102,8 @@ export default function ChatInterface() {
       </div>
 
       {/* Chat Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-background">
-        <ChatMessageList>
+      <div className="flex-1 min-h-0 bg-background">
+        <ChatMessageList className="h-full p-4">
           {messages.map((message) => (
             <ChatBubble
               key={message.id}
@@ -107,8 +120,45 @@ export default function ChatInterface() {
               />
               <ChatBubbleMessage
                 variant={message.sender === "user" ? "sent" : "received"}
+                className={message.sender === "ai" ? "w-full max-w-full" : ""}
               >
-                {message.content}
+                {message.sender === "ai" ? (
+                  <div className="prose prose-sm max-w-none break-words text-sm">
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      components={{
+                        table: ({ node, ...props }) => (
+                          <div className="overflow-x-auto my-2 rounded-md border border-gray-200">
+                            <table className="w-full border-collapse text-left text-sm" {...props} />
+                          </div>
+                        ),
+                        thead: ({ node, ...props }) => (
+                          <thead className="bg-gray-100 text-gray-900 border-b border-gray-200" {...props} />
+                        ),
+                        th: ({ node, ...props }) => (
+                          <th className="px-4 py-3 font-semibold text-xs uppercase tracking-wider whitespace-nowrap" {...props} />
+                        ),
+                        td: ({ node, ...props }) => (
+                          <td className="px-4 py-3 border-b border-gray-100 last:border-0" {...props} />
+                        ),
+                        p: ({ node, ...props }) => <p className="mb-2 last:mb-0 leading-relaxed" {...props} />,
+                        ul: ({ node, ...props }) => <ul className="list-disc pl-5 mb-2 space-y-1" {...props} />,
+                        ol: ({ node, ...props }) => <ol className="list-decimal pl-5 mb-2 space-y-1" {...props} />,
+                        li: ({ node, ...props }) => <li className="" {...props} />,
+                        a: ({ node, ...props }) => <a className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer" {...props} />,
+                        code: ({ node, inline, className, children, ...props }) => (
+                           inline ? 
+                            <code className="bg-gray-100 px-1 py-0.5 rounded text-xs font-mono text-red-500" {...props}>{children}</code> :
+                            <code className="block bg-gray-900 text-gray-100 p-2 rounded text-xs font-mono overflow-x-auto my-2" {...props}>{children}</code>
+                        ),
+                      }}
+                    >
+                       {message.content}
+                    </ReactMarkdown>
+                  </div>
+                ) : (
+                  message.content
+                )}
               </ChatBubbleMessage>
             </ChatBubble>
           ))}
@@ -123,6 +173,7 @@ export default function ChatInterface() {
               <ChatBubbleMessage isLoading />
             </ChatBubble>
           )}
+          <div ref={messagesEndRef} />
         </ChatMessageList>
       </div>
 
