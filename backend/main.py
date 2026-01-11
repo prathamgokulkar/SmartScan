@@ -37,6 +37,10 @@ def clear_store_endpoint():
 @app.post("/api/process-invoice", response_model=UploadResponse)
 async def process_invoice_endpoint(file: UploadFile = File(...)):
     from src.agents import indexing_agent
+    
+    if file.content_type != "application/pdf":
+        raise HTTPException(status_code=400, detail="Invalid file type. Only PDF files are allowed.")
+
     tmp_path = None
     try:
         print("Orchestrator: New upload received. Clearing previous session...")
@@ -46,10 +50,17 @@ async def process_invoice_endpoint(file: UploadFile = File(...)):
             shutil.copyfileobj(file.file, tmp)
             tmp_path = tmp.name
         
+        # Check file size after saving (limit to 10MB)
+        if os.path.getsize(tmp_path) > 10 * 1024 * 1024:
+             raise HTTPException(status_code=413, detail="File too large. Maximum size is 10MB.")
+
         indexing_agent.process_and_store_pdf(tmp_path)
         return {"success": True, "message": "PDF processed and indexed successfully."}
+    except HTTPException as he:
+        raise he
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"INTERNAL ERROR: {e}")
+        raise HTTPException(status_code=500, detail="An internal server error occurred processing the PDF.")
     finally:
         if tmp_path and os.path.exists(tmp_path):
             os.unlink(tmp_path)
@@ -62,5 +73,6 @@ async def query_endpoint(request: QueryRequest):
         answer = qa_agent.answer_query(request.question)
         return {"success":True,"answer": answer}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"INTERNAL ERROR: {e}")
+        raise HTTPException(status_code=500, detail="An internal server error occurred generation the answer.")
 

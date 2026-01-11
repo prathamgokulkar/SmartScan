@@ -1,4 +1,5 @@
 from langchain_qdrant import Qdrant
+import os
 from langchain.embeddings import HuggingFaceEmbeddings
 from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, VectorParams
@@ -12,7 +13,8 @@ EMBEDDING_DIMENSION = 384
 # Initializes and returns a LangChain Qdrant vector store client.
 def get_vector_store_client() -> Qdrant:
    
-    client = QdrantClient(url=QDRANT_URL)
+    api_key = os.getenv("QDRANT_API_KEY")
+    client = QdrantClient(url=QDRANT_URL, api_key=api_key)
     embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL_NAME)
     
     vector_store = Qdrant(
@@ -27,7 +29,8 @@ def clear_vector_store():
   
     print(f"--- Qdrant Client: Deleting and recreating collection '{QDRANT_COLLECTION_NAME}'... ---")
     try:
-        client = QdrantClient(url=QDRANT_URL)
+        api_key = os.getenv("QDRANT_API_KEY")
+        client = QdrantClient(url=QDRANT_URL, api_key=api_key)
         result = client.recreate_collection(
             collection_name=QDRANT_COLLECTION_NAME,
             vectors_config=VectorParams(size=EMBEDDING_DIMENSION, distance=Distance.COSINE)

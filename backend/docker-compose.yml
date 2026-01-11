@@ -9,4 +9,6 @@ services:
       - "6334:6334"  # REST API port for web dashboard
     volumes:
       - ./qdrant_storage:/qdrant/storage  
+    environment:
+      - QDRANT__SERVICE__API_KEY=${QDRANT_API_KEY:-your-secure-api-key-here}
     restart: unless-stopped
