@@ -1,4 +1,4 @@
-# IntelliAgent AI: A Multi-Agent RAG System
+# SmartScan: A Multi-Agent RAG System
 A full-stack, AI-powered application for conversing with your financial documents. This system uses a multi-agent architecture to provide intelligent, fact-checked answers from both digital and scanned PDFs.
 
 ### Features
