@@ -52,33 +52,76 @@ export default function ChatInterface() {
         },
         body: JSON.stringify({
           question: input.trim(),
+          chat_history: messages.map(m => ({ role: m.sender, content: m.content }))
         }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to fetch AI response.");
+      if (!response.body) throw new Error("ReadableStream not supported by browser.");
+
+      // Create a placeholder AI message that we will mutate
+      const aiMessageId = Date.now() + 1;
+      setMessages((prev) => [
+        ...prev,
+        { id: aiMessageId, content: "", sender: "ai", sources: [] }
+      ]);
+      
+      // We are streaming, so stop showing the loading bubble immediately
+      setIsLoading(false);
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+      let partialLine = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        // Decode the incoming byte chunk and split into SSE lines
+        const chunkStr = typeof value === "string" ? value : decoder.decode(value, { stream: true });
+        const lines = (partialLine + chunkStr).split("\n");
+        // The last line might be incomplete, save it for the next chunk
+        partialLine = lines.pop() || "";
+
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            const dataStr = line.substring(6).trim();
+            if (!dataStr) continue;
+            
+            try {
+              const data = JSON.parse(dataStr);
+              
+              setMessages((prev) =>
+                  prev.map((msg) => {
+                    if (msg.id === aiMessageId) {
+                      if (data.chunk) {
+                        return { ...msg, content: msg.content + data.chunk };
+                      }
+                      if (data.done) {
+                        return { ...msg, sources: data.sources || [] };
+                      }
+                      if (data.error) {
+                         return { ...msg, content: msg.content + `\n\n⚠️ Error: ${data.error}` };
+                      }
+                    }
+                    return msg;
+                  })
+              );
+            } catch (err) {
+               console.error("Error parsing stream chunk", err, dataStr);
+            }
+          }
+        }
       }
-
-      const data = await response.json();
-
-      const aiMessage = {
-        id: Date.now() + 1,
-        content: data.answer || "No response received from AI.",
-        sender: "ai",
-      };
-
-      setMessages((prev) => [...prev, aiMessage]);
     } catch (error) {
+      console.error(error);
       const errorMessage = {
         id: Date.now() + 2,
-        content: "⚠️ Error: " + error.message,
+        content: "⚠️ Error connecting to server.",
         sender: "ai",
       };
       setMessages((prev) => [...prev, errorMessage]);
-    } finally {
       setIsLoading(false);
-    }
+    } 
   };
 
   const handleAttachFile = () => {
@@ -113,14 +156,14 @@ export default function ChatInterface() {
                 className="h-8 w-8 shrink-0"
                 src={
                   message.sender === "user"
-                    ? "./public/User.jpeg"
-                    : "./public/robot.jpeg  "
+                    ? "/User.jpeg"
+                    : "/robot.jpeg"
                 }
                 fallback={message.sender === "user" ? "U" : "AI"}
               />
               <ChatBubbleMessage
                 variant={message.sender === "user" ? "sent" : "received"}
-                className={message.sender === "ai" ? "w-full max-w-full" : ""}
+                className={message.sender === "ai" ? "w-full max-w-full min-w-0" : ""}
               >
                 {message.sender === "ai" ? (
                   <div className="prose prose-sm max-w-none break-words text-sm">
@@ -159,6 +202,20 @@ export default function ChatInterface() {
                 ) : (
                   message.content
                 )}
+                
+                {/* 🔹 Render Source Citations if they exist */}
+                {message.sender === "ai" && message.sources && message.sources.length > 0 && (
+                  <div className="mt-4 pt-3 border-t border-gray-200">
+                    <p className="text-xs font-semibold text-gray-500 mb-2">Sources Referenced:</p>
+                    <div className="flex flex-wrap gap-2">
+                       {message.sources.map((source, idx) => (
+                           <span key={idx} className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                               📄 {source}
+                           </span>
+                       ))}
+                    </div>
+                  </div>
+                )}
               </ChatBubbleMessage>
             </ChatBubble>
           ))}
@@ -167,7 +224,7 @@ export default function ChatInterface() {
             <ChatBubble variant="received">
               <ChatBubbleAvatar
                 className="h-8 w-8 shrink-0"
-                src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=64"
+                src="/robot.jpeg"
                 fallback="AI"
               />
               <ChatBubbleMessage isLoading />

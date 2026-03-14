@@ -8,7 +8,7 @@ def process_and_store_pdf(pdf_path: str, original_filename: str = None):
         print(f"Indexing Agent: Managing workflow for '{pdf_path}'")
         
         extracted_text = loader.load_pdf_text(pdf_path)
-        
+         
         filename = original_filename if original_filename else os.path.basename(pdf_path)
         docs = splitter.split_text_into_chunks(extracted_text, metadata={"source": filename})
         

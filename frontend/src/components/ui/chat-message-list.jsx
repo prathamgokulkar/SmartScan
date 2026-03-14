@@ -12,7 +12,7 @@ export function ChatMessageList({ children, className }) {
   return (
     <div
       className={cn(
-        "flex flex-col space-y-3 overflow-y-auto h-full scrollbar-thin scrollbar-thumb-muted/50 p-2",
+        "flex flex-col space-y-3 overflow-y-auto h-full scrollbar-thin scrollbar-thumb-muted/50 p-2 touch-pan-y scroll-smooth",
         className
       )}
     >

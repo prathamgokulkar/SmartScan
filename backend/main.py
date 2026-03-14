@@ -78,13 +78,20 @@ async def process_invoice_endpoint(files: list[UploadFile] = File(...)):
         print(f"INTERNAL ERROR: {e}")
         raise HTTPException(status_code=500, detail="An internal server error occurred processing the PDFs.")
 
-@app.post("/api/query", response_model=QueryResponse)
+from fastapi.responses import StreamingResponse
+
+@app.post("/api/query")
 async def query_endpoint(request: QueryRequest):
     from src.agents import qa_agent
     try:
-        answer = qa_agent.answer_query(request.question)
-        return {"success":True,"answer": answer}
+        # Return the generator as a StreamingResponse matching the SSE spec
+        return StreamingResponse(
+            qa_agent.stream_answer_query(request.question, request.chat_history),
+            media_type="text/event-stream"
+        )
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         print(f"INTERNAL ERROR: {e}")
         raise HTTPException(status_code=500, detail="An internal server error occurred generation the answer.")
 

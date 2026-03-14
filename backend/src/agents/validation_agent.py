@@ -35,9 +35,22 @@ def validate_answer_with_llm(answer: str, context: list) -> dict:
     try:
         response = validation_llm.invoke(validation_prompt_template)
         import json
-        validation_result = json.loads(response.content)
-        print(f"Validation Agent: Result: {validation_result}")
-        return validation_result
+        import re
+        
+        content = response.content.strip()
+        
+        # Extract the JSON block using Regex in case the LLM added conversational text before or after
+        json_match = re.search(r'(\{.*\})', content, re.DOTALL)
+        
+        if json_match:
+            clean_json = json_match.group(1)
+            validation_result = json.loads(clean_json)
+            print(f"Validation Agent: Result: {validation_result}")
+            return validation_result
+        else:
+            raise ValueError("No JSON object could be found in the LLM response.")
+            
     except Exception as e:
         print(f"!!!!!! ERROR in Validation Agent: Could not parse validation response: {e} !!!!!!")
-        return {"is_supported": False, "reasoning": "Validation process failed."}
+        print(f"Raw Response Content: {response.content if 'response' in locals() else 'None'}")
+        return {"is_supported": False, "reasoning": "Validation process failed due to parsing error."}
